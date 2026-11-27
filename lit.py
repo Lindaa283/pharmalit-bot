@@ -5,14 +5,20 @@ try:
 except ImportError: pass
 BASE=os.environ.get("LLM_GATEWAY_BASE_URL","http://127.0.0.1:4000/v1").rstrip("/")
 GW=BASE+"/chat/completions"
+_KEY=None
 def _key():
+    # Resolved on first use, not at import, so the bot can start and report a
+    # readable error instead of crashing with a traceback on a missing key.
+    global _KEY
+    if _KEY: return _KEY
     k=os.environ.get("LLM_GATEWAY_KEY")
-    if k: return k.strip()
-    fb=os.environ.get("LLM_GATEWAY_KEY_FILE",os.path.expanduser("~/.llm_gateway_key"))
-    for f in (fb,"/workspace/llm-gateway/.master_key"):
-        if os.path.exists(f): return open(f).read().strip()
-    raise RuntimeError("LLM_GATEWAY_KEY not set")
-KEY=_key()
+    if not k:
+        f=os.environ.get("LLM_GATEWAY_KEY_FILE",os.path.expanduser("~/.llm_gateway_key"))
+        if os.path.exists(f): k=open(f).read()
+    if not k:
+        raise RuntimeError("LLM_GATEWAY_KEY is not set. Copy .env.example to .env and fill it in, or set LLM_GATEWAY_KEY_FILE.")
+    _KEY=k.strip()
+    return _KEY
 NCBI=os.environ.get("NCBI_API_KEY")
 def _ep(d):
     if NCBI: d["api_key"]=NCBI
@@ -32,7 +38,7 @@ async def pubmed(s, q, n=5):
         out.append(dict(pmid=pm,title=t,abstract=ab[:2500]))
     return out
 async def chat(s, model, prompt, mt=600):
-    async with s.post(GW, headers={"Authorization":"Bearer "+KEY}, json=dict(model=model,messages=[{"role":"user","content":prompt}],max_tokens=mt,temperature=0.2), timeout=aiohttp.ClientTimeout(total=120)) as r:
+    async with s.post(GW, headers={"Authorization":"Bearer "+_key()}, json=dict(model=model,messages=[{"role":"user","content":prompt}],max_tokens=mt,temperature=0.2), timeout=aiohttp.ClientTimeout(total=120)) as r:
         return (await r.json())["choices"][0]["message"]["content"].strip()
 async def lit(target):
     async with aiohttp.ClientSession() as s:

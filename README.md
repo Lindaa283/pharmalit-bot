@@ -33,7 +33,7 @@ Requirements: Python 3.10+, a Discord application with a bot token, and an OpenA
 git clone https://github.com/<your-username>/pharmalit-bot.git
 cd pharmalit-bot
 python -m venv venv && source venv/bin/activate
-pip install discord.py aiohttp python-dotenv
+pip install -r requirements.txt
 cp .env.example .env   # then fill in your own values
 python main.py
 ```

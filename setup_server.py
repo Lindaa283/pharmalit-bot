@@ -1,4 +1,16 @@
 import os, asyncio, discord
+try:
+    from dotenv import load_dotenv; load_dotenv()
+except ImportError: pass
+
+# Who runs the community. Shown in the welcome message; edit this, or set
+# OWNER_BLURB in .env, before running the script on your own server.
+OWNER_BLURB = os.environ.get(
+    "OWNER_BLURB",
+    "Run by Xiaofan, a final-year Pharmaceutical Science student at TU Dublin "
+    "who is learning to code and applying to bio-AI PhDs. We're building this "
+    "in public, so feedback is welcome!")
+
 STRUCT = [
  ("📌 START HERE", ["welcome","rules","announcements","introductions"]),
  ("📰 DAILY FEED", ["ai-pharma-daily","frontier-tech"]),
@@ -28,11 +40,27 @@ Start here:
 3. Check {daily} for today's news
 4. Try /lit <target> in {lit} (e.g. /lit KRAS G12C) for a cited multi-model literature summary
 
-Run by Xiaofan, a final-year Pharmaceutical Science student at TU Dublin who is learning to code and applying to bio-AI PhDs. We're building this in public, so feedback is welcome!"""
+{OWNER_BLURB}"""
 client = discord.Client(intents=discord.Intents.default())
 @client.event
 async def on_ready():
-    g = client.guilds[0]; created=[]
+    # This script creates ~20 channels. Require the target server to be named
+    # explicitly rather than silently using whichever guild happens to be first.
+    gid = os.environ.get("DISCORD_GUILD_ID")
+    if gid:
+        g = client.get_guild(int(gid))
+        if g is None:
+            print(f"Bot is not in a server with id {gid}. Servers it can see: " +
+                  ", ".join(f"{x.name} ({x.id})" for x in client.guilds))
+            return await client.close()
+    elif len(client.guilds) == 1:
+        g = client.guilds[0]
+    else:
+        print("Set DISCORD_GUILD_ID to the server to set up. Servers this bot can see: " +
+              ", ".join(f"{x.name} ({x.id})" for x in client.guilds))
+        return await client.close()
+    print(f"Setting up: {g.name} ({g.id})")
+    created=[]
     ch = {c.name:c for c in g.text_channels}
     cats = {c.name:c for c in g.categories}
     for cname, chans in STRUCT:
@@ -54,6 +82,6 @@ async def on_ready():
             if m.author.id==client.user.id and marker in m.content: return
         await c.send(text, allowed_mentions=discord.AllowedMentions.none()); posted.append("#"+c.name)
     await post_once(ch["rules"], RULES, "**Rules**")
-    await post_once(ch["welcome"], WELCOME.format(rules=ch["rules"].mention,intro=ch["introductions"].mention,daily=ch["ai-pharma-daily"].mention,lit=ch["lit-bot"].mention), "Welcome to AI Pharma")
+    await post_once(ch["welcome"], WELCOME.format(rules=ch["rules"].mention,intro=ch["introductions"].mention,daily=ch["ai-pharma-daily"].mention,lit=ch["lit-bot"].mention,OWNER_BLURB=OWNER_BLURB), "Welcome to AI Pharma")
     print("CREATED", created); print("POSTED", posted); await client.close()
 client.run(os.environ["DISCORD_BOT_TOKEN"], log_handler=None)

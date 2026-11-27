@@ -8,9 +8,9 @@ intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 tree = discord.app_commands.CommandTree(client)
 
-@tree.command(name="ping", description="测试机器人是否在线")
+@tree.command(name="ping", description="Check whether the bot is online")
 async def ping(interaction: discord.Interaction):
-    await interaction.response.send_message("pong 🏓 机器人在线！")
+    await interaction.response.send_message("pong 🏓 online")
 
 @tree.command(name="lit", description="Cited multi-model PubMed summary (3/day)")
 @discord.app_commands.describe(target="Target or drug, e.g. KRAS G12C")
