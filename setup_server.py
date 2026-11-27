@@ -7,9 +7,9 @@ except ImportError: pass
 # OWNER_BLURB in .env, before running the script on your own server.
 OWNER_BLURB = os.environ.get(
     "OWNER_BLURB",
-    "Run by Xiaofan, a final-year Pharmaceutical Science student at TU Dublin "
-    "who is learning to code and applying to bio-AI PhDs. We're building this "
-    "in public, so feedback is welcome!")
+    "Run by Linda (@wongyong_fan), a pharmaceutical science student learning "
+    "to code and applying to bio-AI PhDs. We're building this in public, so "
+    "feedback is welcome!")
 
 STRUCT = [
  ("📌 START HERE", ["welcome","rules","announcements","introductions"]),
